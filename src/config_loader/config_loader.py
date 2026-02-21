@@ -1,23 +1,40 @@
 import json
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Literal
 
 
-class OpenAIModelConfig(BaseModel):
-    system_prompt: str = Field(
-        ..., description="System prompt for the travel assistant"
+class OpenAIConfig(BaseModel):
+    api_key_env: str = Field(
+        ..., description="Environment variable name for OpenAI API key"
     )
     model_name: str = Field(..., description="OpenAI model name")
-    temperature: Optional[float] = Field(
-        default=0.6, description="Temperature for response generation"
+    temperature: float = Field(0.6, description="Temperature for OpenAI responses")
+
+
+class OllamaConfig(BaseModel):
+    base_url: str = Field(..., description="Base URL of Ollama server")
+    model_name: str = Field(..., description="Ollama model name")
+
+
+class OpenRouterConfig(BaseModel):
+    api_key_env: str = Field(
+        ..., description="Environment variable name for OpenRouter API key"
     )
+    base_url: str = Field(..., description="Base URL for Openrouter endpoint")
+    model_name: str = Field(..., description="OpenRouter model name")
 
 
 class Config(BaseModel):
     destinations_filename: str = Field(
         ..., description="Excel file containing destinations details"
     )
-    openAI_model_config: OpenAIModelConfig
+    llm_backend: Literal["openai", "ollama", "openrouter"]
+    openai_config: OpenAIConfig
+    ollama_config: OllamaConfig
+    openrouter_config: OpenRouterConfig
+    system_prompt: str = Field(
+        ..., description="System prompt for the travel assistant"
+    )
 
 
 def config_loader(config_path: str) -> Config:
