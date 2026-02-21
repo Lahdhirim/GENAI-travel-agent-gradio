@@ -1,1 +1,5 @@
-# AI Travel Assistant using OpenAI and Gradio (Under Construction)
+# AI Travel Assistant using Gradio (Under Construction)
+Supported LLM providers:
+- OpenAI
+- OpenRouter
+- Ollama (Local)
