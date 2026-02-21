@@ -11,7 +11,6 @@ class OpenRouterLLM:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost",
         }
 
         payload = {

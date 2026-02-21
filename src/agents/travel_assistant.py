@@ -4,6 +4,7 @@ class TravelAssistant:
         self.system_prompt = system_prompt
 
     def chat(self, message, history):
+
         prompt = f"""
             {self.system_prompt}
 
