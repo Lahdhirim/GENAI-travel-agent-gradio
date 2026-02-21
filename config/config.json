@@ -1,19 +1,13 @@
 {
   "destinations_filename": "data/destinations_infos.xlsx",
-  "llm_backend": "openrouter",
+  "llm_backend": "openai",
   "openai_config": {
-    "api_key_env": "OPENAI_API_KEY",
     "model_name": "gpt-4o-mini",
     "temperature": 0.1
   },
-  "ollama_config": {
-    "base_url": "http://localhost:11434",
-    "model_name": "mistral:latest"
-  },
   "openrouter_config": {
-    "api_key_env": "OPENROUTER_API_KEY",
     "base_url": "https://openrouter.ai/api/v1/chat/completions",
     "model_name": "meta-llama/llama-3.3-70b-instruct"
   },
-  "system_prompt": "You are a travel assistant. Answer in English using the provided destination data when available."
+  "system_prompt": "You are MomoBot, a travel assistant for a company called PyTravel. Be accurate, if you don't know the answer, say so. Only call tools when the user explicitly asks for information that requires a tool."
 }

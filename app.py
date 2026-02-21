@@ -6,7 +6,6 @@ from src.utils.logger_config import logger
 from src.config_loader.config_loader import config_loader
 from src.agents.travel_assistant import TravelAssistant
 from src.agents.openai_llm import OpenAILLM
-from src.agents.ollama_llm import OllamaLLM
 from src.agents.openrouter_llm import OpenRouterLLM
 
 # Set up logging
@@ -28,7 +27,14 @@ backend = config.llm_backend
 
 if backend == "openai":
     logger.info(f"OpenAI {config.openai_config.model_name} LLM is selected")
-    api_key = os.getenv(config.openai_config.api_key_env)
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY is missing.\n"
+            "Create a .env file with:\n"
+            "OPENAI_API_KEY=sk-xxxx\n"
+            "Or export it in your environment."
+        )
     logger.info("OPENAI API key loaded")
 
     llm = OpenAILLM(
@@ -37,17 +43,16 @@ if backend == "openai":
         temperature=config.openai_config.temperature,
     )
 
-elif backend == "ollama":
-    logger.info(f"Ollama {config.ollama_config.model_name} LLM is selected")
-
-    llm = OllamaLLM(
-        base_url=config.ollama_config.base_url,
-        model_name=config.ollama_config.model_name,
-    )
-
 elif backend == "openrouter":
     logger.info(f"OpenRouter {config.openrouter_config.model_name} LLM is selected")
-    api_key = os.getenv(config.openrouter_config.api_key_env)
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "OPENROUTER_API_KEY is missing.\n"
+            "Create a .env file with:\n"
+            "OPENROUTER_API_KEY=sk-xxxx\n"
+            "Or export it in your environment."
+        )
     logger.info("OpenRouter API key loaded")
 
     llm = OpenRouterLLM(

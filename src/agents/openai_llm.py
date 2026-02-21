@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from src.agents.base_llm import BaseLLM
+from src.agents.base_llm import BaseLLM, LLMResult
 
 
 class OpenAILLM(BaseLLM):
@@ -9,10 +9,20 @@ class OpenAILLM(BaseLLM):
         self.model = model_name
         self.temperature = temperature
 
-    def generate(self, messages: list) -> str:
+    def generate(self, messages: list, tools: None) -> LLMResult:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
             temperature=self.temperature,
+            tools=tools,
         )
-        return response.choices[0].message.content
+
+        choice = response.choices[0]
+        msg = choice.message
+
+        return LLMResult(
+            message=msg,
+            finish_reason=choice.finish_reason,
+            tool_calls=getattr(msg, "tool_calls", None),
+            content=msg.content,
+        )
