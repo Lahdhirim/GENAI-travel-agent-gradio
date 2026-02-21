@@ -1,5 +1,5 @@
-import os
 from openai import OpenAI
+
 from src.agents.base_llm import BaseLLM
 
 
@@ -9,10 +9,10 @@ class OpenAILLM(BaseLLM):
         self.model = model_name
         self.temperature = temperature
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, messages: list) -> str:
         response = self.client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
             temperature=self.temperature,
         )
         return response.choices[0].message.content

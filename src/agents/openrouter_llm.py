@@ -7,7 +7,7 @@ class OpenRouterLLM:
         self.model_name = model_name
         self.base_url = base_url
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, messages: list) -> str:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -15,7 +15,7 @@ class OpenRouterLLM:
 
         payload = {
             "model": self.model_name,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": messages,
         }
 
         response = requests.post(

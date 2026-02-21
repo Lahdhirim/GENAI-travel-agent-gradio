@@ -57,6 +57,7 @@ elif backend == "openrouter":
     )
 
 else:
+    logger.error(f"Unknown LLM backend: {backend}")
     raise ValueError(f"Unknown LLM backend: {backend}")
 
 

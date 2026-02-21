@@ -1,6 +1,6 @@
 {
   "destinations_filename": "data/destinations_infos.xlsx",
-  "llm_backend": "openai",
+  "llm_backend": "openrouter",
   "openai_config": {
     "api_key_env": "OPENAI_API_KEY",
     "model_name": "gpt-4o-mini",

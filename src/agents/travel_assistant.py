@@ -5,12 +5,10 @@ class TravelAssistant:
 
     def chat(self, message, history):
 
-        prompt = f"""
-            {self.system_prompt}
+        msgs = [{"role": "system", "content": self.system_prompt}]
+        msgs.extend(
+            {"role": h["role"], "content": h["content"]} for h in (history or [])
+        )
+        msgs.append({"role": "user", "content": message})
 
-            User:
-            {message}
-
-            Assistant:
-            """
-        return self.llm.generate(prompt)
+        return self.llm.generate(msgs)

@@ -8,9 +8,11 @@ class OllamaLLM(BaseLLM):
         self.model = model_name
         self.base_url = base_url
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, messages: list) -> str:
         response = requests.post(
-            f"{self.base_url}/api/generate",
-            json={"model": self.model, "prompt": prompt, "stream": False},
+            f"{self.base_url}/api/chat",
+            json={"model": self.model, "messages": messages, "stream": False},
         )
-        return response.json()["response"]
+        response.raise_for_status()
+        data = response.json()
+        return data["message"]["content"]
