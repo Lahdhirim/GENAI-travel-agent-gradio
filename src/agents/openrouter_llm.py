@@ -16,14 +16,20 @@ class OpenRouterLLM(BaseLLM):
         normalized_tool_calls = []
 
         for tc in tool_calls:
+            fn = tc.get("function", {})
+            name = fn.get("name")
+            arguments = fn.get("arguments", "{}")
+
             function = SimpleNamespace(
-                name=tc["function"]["name"],
-                arguments=tc["function"]["arguments"],
+                name=name,
+                arguments=arguments,
             )
+
             normalized_tc = SimpleNamespace(
                 id=tc.get("id"),
                 function=function,
             )
+
             normalized_tool_calls.append(normalized_tc)
 
         return normalized_tool_calls

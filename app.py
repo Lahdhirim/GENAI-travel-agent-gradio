@@ -67,7 +67,11 @@ else:
 
 
 # Initialize travel assistant
-travel_assistant = TravelAssistant(llm=llm, system_prompt=config.system_prompt)
+travel_assistant = TravelAssistant(
+    llm=llm,
+    system_prompt=config.system_prompt,
+    destinations_excel_path=config.destinations_filename,
+)
 logger.info(f"Travel Agent initialized")
 
 # Gradio Interface
