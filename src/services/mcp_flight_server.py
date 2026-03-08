@@ -7,9 +7,11 @@ import requests
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
+# [MEDIUM]: Add logger for server
+
 API_BASE_URL = "https://api.aviationstack.com/v1"
 
-mcp = FastMCP("Aviation MCP Server")
+mcp = FastMCP("Aviation MCP Server", host="0.0.0.0", port=8001)
 
 load_dotenv()
 
@@ -63,7 +65,7 @@ def search_flights(
         return json.dumps(results, indent=2)
 
     else:
-        return json.dumps({"error": "No scheduled flights found"})
+        return json.dumps({"Message": "No scheduled flights found"})
 
 
 if __name__ == "__main__":
