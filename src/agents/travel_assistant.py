@@ -11,6 +11,8 @@ from src.agents.tools.destinations_infos import (
 from src.db.excel_db import ExcelDestinationsDB
 from src.services.weather_service import WeatherService
 
+# [LOW]: add Schema
+
 
 class TravelAssistant:
     def __init__(self, llm, system_prompt: str, destinations_excel_path: str):
