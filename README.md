@@ -6,7 +6,7 @@ Supported LLM providers:
 Supported Tools:
 - Read an internal database and retrieve information about destinations.
 - Get live weather data for a given location using external API (https://open-meteo.com/)
-- Local MCP Server build to use AviationStack API (https://docs.apilayer.com/aviationstack/docs/api-documentation)
+- Local MCP Server built to use AviationStack API (https://docs.apilayer.com/aviationstack/docs/api-documentation)
 
 <div align="center">
 
