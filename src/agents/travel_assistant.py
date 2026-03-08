@@ -92,7 +92,9 @@ class TravelAssistant:
 
         return {"role": "tool", "tool_call_id": tool_call.id, "content": str(result)}
 
-        # [MEDIUM]: add live weather retrieving tool
+        # [MEDIUM]: add live weather retrieving tool API
+
+        # [MEDIUM]: add MCP Server
 
     def chat(self, message, history) -> str:
 
