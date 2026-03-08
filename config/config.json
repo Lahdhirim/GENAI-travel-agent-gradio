@@ -1,6 +1,6 @@
 {
   "destinations_filename": "data/destinations_infos.xlsx",
-  "llm_backend": "openrouter",
+  "llm_backend": "openai",
   "openai_config": {
     "model_name": "gpt-4o-mini",
     "temperature": 0.1

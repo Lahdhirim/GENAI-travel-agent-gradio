@@ -3,4 +3,4 @@ __pycache__/
 *.pyc
 logs
 archive
-notebooks/.cache.sqlite
+.cache.sqlite

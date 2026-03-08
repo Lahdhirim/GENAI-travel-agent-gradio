@@ -1,10 +1,12 @@
 import json
 
+from src.utils.logger_config import logger
 from src.agents.tools.destinations_infos import (
     tool_list_destinations,
     tool_get_destination_info,
     tool_search_destinations_by_keyword,
     tool_recommend_destinations_by_season,
+    tool_get_live_weather,
 )
 from src.db.excel_db import ExcelDestinationsDB
 
@@ -24,6 +26,9 @@ class TravelAssistant:
             ),
             "recommend_destinations_by_season": lambda season_query, **_: tool_recommend_destinations_by_season(
                 self.db, season_query
+            ),
+            "get_live_weather": lambda destination, **_: tool_get_live_weather(
+                self.db, destination
             ),
         }
         self._define_tools()
@@ -74,6 +79,18 @@ class TravelAssistant:
                     },
                 },
             },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_live_weather",
+                    "description": "Get current live weather for a destination. Call when user asks about current weather or temperature.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"destination": {"type": "string"}},
+                        "required": ["destination"],
+                    },
+                },
+            },
         ]
 
     def _handle_tool_call(self, tool_calls):
@@ -82,21 +99,20 @@ class TravelAssistant:
         args = json.loads(tool_call.function.arguments)
 
         if name not in self.tool_registry:
+            logger.error(f"Unknown tool: {name}")
             return {
                 "role": "tool",
                 "tool_call_id": tool_call.id,
                 "content": f"Unknown tool: {name}",
             }
 
+        logger.info(f"Calling tool: {name} with args: {args}")
         result = self.tool_registry[name](**args)
 
         return {"role": "tool", "tool_call_id": tool_call.id, "content": str(result)}
 
-        # [MEDIUM]: add live weather retrieving tool API
-
-        # [MEDIUM]: add MCP Server
-
     def chat(self, message, history) -> str:
+        logger.info(f"User message: {message}")
 
         # System prompt
         msgs = [{"role": "system", "content": self.system_prompt}]
@@ -108,14 +124,20 @@ class TravelAssistant:
         msgs.append({"role": "user", "content": message})
 
         response = self.llm.generate(messages=msgs, tools=self.tools)
+        logger.info(f"Assistant response: {response.content}")
 
         # Handle tool calls
         while response.finish_reason == "tool_calls":
+            logger.info("Handling tool calls...")
             message = response.message
             tool_output = self._handle_tool_call(tool_calls=response.tool_calls)
             msgs.append(message)
             msgs.append(tool_output)
+            logger.info(f"Assistant tool output: {tool_output}")
 
             response = self.llm.generate(messages=msgs, tools=self.tools)
+            logger.info(
+                f"Assistant response after handling tool calls: {response.content}"
+            )
 
         return response.content
