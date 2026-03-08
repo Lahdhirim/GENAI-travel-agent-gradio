@@ -7,6 +7,7 @@ from src.config_loader.config_loader import config_loader
 from src.agents.travel_assistant import TravelAssistant
 from src.agents.openai_llm import OpenAILLM
 from src.agents.openrouter_llm import OpenRouterLLM
+from src.utils.app_utils import numpy_to_base64, path_to_base64, make_html
 
 # Set up logging
 with open("logs/app.log", "w") as log_file:
@@ -75,4 +76,39 @@ travel_assistant = TravelAssistant(
 logger.info(f"Travel Agent initialized")
 
 # Gradio Interface
-gr.ChatInterface(fn=travel_assistant.chat, type="messages").launch(inbrowser=True)
+DEFAULT_IMAGE_PATH = "assets/travel_assistant.png"
+DEFAULT_B64 = path_to_base64(DEFAULT_IMAGE_PATH)
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column(scale=2):
+            history = gr.Chatbot(type="messages")
+            message = gr.Textbox()
+
+        with gr.Column(scale=1):
+            plot_output = gr.HTML(value=make_html(DEFAULT_B64), label="Output Plot")
+
+    def chat_with_plot(message, history, current_b64):
+        response, fig = travel_assistant.chat(message, history)
+
+        history = history + [
+            {"role": "user", "content": message},
+            {"role": "assistant", "content": response},
+        ]
+
+        if fig is not None:
+            new_b64 = numpy_to_base64(fig)
+        else:
+            new_b64 = current_b64
+
+        return history, make_html(new_b64), "", new_b64
+
+    current_b64_state = gr.State(DEFAULT_B64)
+
+    message.submit(
+        chat_with_plot,
+        inputs=[message, history, current_b64_state],
+        outputs=[history, plot_output, message, current_b64_state],
+    )
+
+demo.launch(inbrowser=True)

@@ -9,6 +9,7 @@ from src.agents.tools.destinations_infos import (
     tool_get_live_weather,
 )
 from src.db.excel_db import ExcelDestinationsDB
+from src.services.weather_service import WeatherService
 
 
 class TravelAssistant:
@@ -16,6 +17,7 @@ class TravelAssistant:
         self.llm = llm
         self.system_prompt = system_prompt
         self.db = ExcelDestinationsDB(destinations_excel_path)
+        self.weather_service = WeatherService()
         self.tool_registry = {
             "list_destinations": lambda **_: tool_list_destinations(self.db),
             "get_destination_info": lambda destination, **_: tool_get_destination_info(
@@ -28,7 +30,7 @@ class TravelAssistant:
                 self.db, season_query
             ),
             "get_live_weather": lambda destination, **_: tool_get_live_weather(
-                self.db, destination
+                self.db, self.weather_service, destination
             ),
         }
         self._define_tools()
@@ -100,19 +102,27 @@ class TravelAssistant:
 
         if name not in self.tool_registry:
             logger.error(f"Unknown tool: {name}")
-            return {
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": f"Unknown tool: {name}",
-            }
+            return (
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": f"Unknown tool: {name}",
+                },
+                None,
+            )
 
         logger.info(f"Calling tool: {name} with args: {args}")
-        result = self.tool_registry[name](**args)
+        result_text, fig = self.tool_registry[name](**args)
 
-        return {"role": "tool", "tool_call_id": tool_call.id, "content": str(result)}
+        return {
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": str(result_text),
+        }, fig
 
     def chat(self, message, history) -> str:
         logger.info(f"User message: {message}")
+        fig = None
 
         # System prompt
         msgs = [{"role": "system", "content": self.system_prompt}]
@@ -129,9 +139,15 @@ class TravelAssistant:
         # Handle tool calls
         while response.finish_reason == "tool_calls":
             logger.info("Handling tool calls...")
-            message = response.message
-            tool_output = self._handle_tool_call(tool_calls=response.tool_calls)
-            msgs.append(message)
+            assistant_message = response.message
+            tool_output, tool_fig = self._handle_tool_call(
+                tool_calls=response.tool_calls
+            )
+
+            if tool_fig is not None:
+                fig = tool_fig
+
+            msgs.append(assistant_message)
             msgs.append(tool_output)
             logger.info(f"Assistant tool output: {tool_output}")
 
@@ -140,4 +156,4 @@ class TravelAssistant:
                 f"Assistant response after handling tool calls: {response.content}"
             )
 
-        return response.content
+        return response.content, fig
