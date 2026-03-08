@@ -9,7 +9,6 @@ import matplotlib.dates as mdates
 import io
 from PIL import Image
 import numpy as np
-import datetime
 
 from src.utils.logger_config import logger
 

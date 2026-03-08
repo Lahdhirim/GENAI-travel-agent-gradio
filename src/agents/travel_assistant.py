@@ -10,6 +10,9 @@ from src.agents.tools.destinations_infos import (
 )
 from src.db.excel_db import ExcelDestinationsDB
 from src.services.weather_service import WeatherService
+from src.agents.tools.mcp_flight_client import MCPFlightClient
+
+# [LOW]: add Schema
 
 
 class TravelAssistant:
@@ -18,6 +21,8 @@ class TravelAssistant:
         self.system_prompt = system_prompt
         self.db = ExcelDestinationsDB(destinations_excel_path)
         self.weather_service = WeatherService()
+        self.flight_client = MCPFlightClient()
+        # [MEDIUM]: add tools dynamically from config file
         self.tool_registry = {
             "list_destinations": lambda **_: tool_list_destinations(self.db),
             "get_destination_info": lambda destination, **_: tool_get_destination_info(
@@ -31,6 +36,9 @@ class TravelAssistant:
             ),
             "get_live_weather": lambda destination, **_: tool_get_live_weather(
                 self.db, self.weather_service, destination
+            ),
+            "search_flights": lambda dep_iata, arr_iata, **_: self.flight_client.search_flights(
+                dep_iata, arr_iata
             ),
         }
         self._define_tools()
@@ -90,6 +98,21 @@ class TravelAssistant:
                         "type": "object",
                         "properties": {"destination": {"type": "string"}},
                         "required": ["destination"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "search_flights",
+                    "description": "Search scheduled flights between two airports using IATA codes (e.g., CDG to SFO). This calls an external MCP Aviation server.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "dep_iata": {"type": "string"},
+                            "arr_iata": {"type": "string"},
+                        },
+                        "required": ["dep_iata", "arr_iata"],
                     },
                 },
             },
