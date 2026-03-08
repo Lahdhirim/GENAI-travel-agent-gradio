@@ -54,6 +54,20 @@ class WeatherService:
             logger.error(f"Error fetching weather data: {e}")
             return None
 
+    def _format_weather_keys(self, weather_dict: dict) -> dict:
+        key_mapping = {
+            "temperature": "temperature (°C)",
+            "wind_speed": "wind_speed (km/h)",
+        }
+
+        formatted = {}
+
+        for key, value in weather_dict.items():
+            new_key = key_mapping.get(key, key)
+            formatted[new_key] = value
+
+        return formatted
+
     def get_weather(self, destination: str, country: str):
 
         lat, lon = self._get_coordinates(destination, country)
@@ -78,8 +92,10 @@ class WeatherService:
             "wind_speed": current.Variables(1).Value(),
         }
 
+        result_formattted = self._format_weather_keys(result)
         logger.info(f"Current weather: {result}")
-        return result
+        logger.info(f"Current weather formatted: {result_formattted}")
+        return result_formattted
 
     def plot_forecast(self, destination: str, country: str):
 
