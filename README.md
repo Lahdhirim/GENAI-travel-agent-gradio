@@ -6,3 +6,9 @@ Supported LLM providers:
 Supported Tools:
 - Read an internal database and retrieve information about destinations.
 - Get live weather data for a given location using external API (https://open-meteo.com/)
+
+<div align="center">
+
+![Demo](assets/demo.gif)
+
+</div>

@@ -62,7 +62,7 @@ class WeatherService:
 
         # Get Current weather
         response = self._call_api(
-            lat, lon, {"current": ["temperature_2m", "wind_speed_10m", "precipitation"]}
+            lat, lon, {"current": ["temperature_2m", "wind_speed_10m"]}
         )
 
         if not response:
@@ -76,7 +76,6 @@ class WeatherService:
             "longitude": lon,
             "temperature": current.Variables(0).Value(),
             "wind_speed": current.Variables(1).Value(),
-            "precipitation": current.Variables(2).Value(),
         }
 
         logger.info(f"Current weather: {result}")
