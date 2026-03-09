@@ -56,6 +56,26 @@ class MCPFlightClient:
             timeout=5,
         )
 
+    def list_tools(self) -> list[dict]:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/list",
+            "params": {},
+        }
+        response = self.session.post(
+            self.session_url,
+            json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "mcp-session-id": self.session_id,
+            },
+            timeout=10,
+        )
+        data = self._parse_sse(response.content)
+        return data.get("result", {}).get("tools", [])
+
     def _parse_sse(self, raw_bytes: bytes) -> dict:
         text = raw_bytes.decode("utf-8")
 
