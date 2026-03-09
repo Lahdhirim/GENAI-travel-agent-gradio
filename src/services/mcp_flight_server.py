@@ -34,7 +34,10 @@ def fetch(endpoint: str, params: dict):
     return response.json()
 
 
-@mcp.tool(name="search_flights")
+@mcp.tool(
+    name="search_flights",
+    description="Search scheduled flights between two airports using IATA codes (e.g., CDG to SFO). This calls an external MCP Aviation server.",
+)
 def search_flights(
     dep_iata: Annotated[
         str, Field(description="Departure Airport name (e.g., CDG for Paris)")

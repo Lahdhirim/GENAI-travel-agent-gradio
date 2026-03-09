@@ -37,9 +37,6 @@ class TravelAssistant:
             "get_live_weather": lambda destination, **_: tool_get_live_weather(
                 self.db, self.weather_service, destination
             ),
-            "search_flights": lambda dep_iata, arr_iata, **_: self.flight_client.search_flights(
-                dep_iata, arr_iata
-            ),
         }
         self._define_tools()
 
@@ -101,22 +98,25 @@ class TravelAssistant:
                     },
                 },
             },
-            {
-                "type": "function",
-                "function": {
-                    "name": "search_flights",
-                    "description": "Search scheduled flights between two airports using IATA codes (e.g., CDG to SFO). This calls an external MCP Aviation server.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "dep_iata": {"type": "string"},
-                            "arr_iata": {"type": "string"},
-                        },
-                        "required": ["dep_iata", "arr_iata"],
-                    },
-                },
-            },
         ]
+
+        # Add MCP Server Tools dynamically
+        for mcp_tool in self.flight_client.list_tools():
+            self.tools.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": mcp_tool["name"],
+                        "description": mcp_tool.get("description", ""),
+                        "parameters": mcp_tool.get(
+                            "inputSchema", {"type": "object", "properties": {}}
+                        ),
+                    },
+                }
+            )
+            self.tool_registry[mcp_tool["name"]] = lambda _tool=mcp_tool[
+                "name"
+            ], **args: self.flight_client._call_tool(_tool, args)
 
     def _handle_tool_call(self, tool_calls):
         tool_call = tool_calls[0]
