@@ -1,6 +1,7 @@
 import json
 
 from src.utils.logger_config import logger
+from src.utils.schema import ToolsSchema
 from src.agents.tools.destinations_infos import (
     tool_list_destinations,
     tool_get_destination_info,
@@ -12,8 +13,6 @@ from src.db.excel_db import ExcelDestinationsDB
 from src.services.weather_service import WeatherService
 from src.agents.tools.mcp_flight_client import MCPFlightClient
 
-# [LOW]: add Schema
-
 
 class TravelAssistant:
     def __init__(self, llm, system_prompt: str, destinations_excel_path: str):
@@ -24,28 +23,31 @@ class TravelAssistant:
         self.flight_client = MCPFlightClient()
         # [MEDIUM]: add tools dynamically from config file
         self.tool_registry = {
-            "list_destinations": lambda **_: tool_list_destinations(self.db),
-            "get_destination_info": lambda destination, **_: tool_get_destination_info(
+            ToolsSchema.LIST_DESTINATIONS: lambda **_: tool_list_destinations(self.db),
+            ToolsSchema.GET_DESTINATION_INFO: lambda destination, **_: tool_get_destination_info(
                 self.db, destination
             ),
-            "search_destinations_by_keyword": lambda keyword, **_: tool_search_destinations_by_keyword(
+            ToolsSchema.SEARCH_DESTINATIONS_BY_KEYWORD: lambda keyword, **_: tool_search_destinations_by_keyword(
                 self.db, keyword
             ),
-            "recommend_destinations_by_season": lambda season_query, **_: tool_recommend_destinations_by_season(
+            ToolsSchema.RECOMMEND_DESTINATIONS_BY_SEASON: lambda season_query, **_: tool_recommend_destinations_by_season(
                 self.db, season_query
             ),
-            "get_live_weather": lambda destination, **_: tool_get_live_weather(
+            ToolsSchema.GET_LIVE_WEATHER: lambda destination, **_: tool_get_live_weather(
                 self.db, self.weather_service, destination
             ),
         }
         self._define_tools()
 
     def _define_tools(self):
+        """Define all LLM-callable tools"""
+
+        # Static tool definitions exposed to the LLM
         self.tools = [
             {
                 "type": "function",
                 "function": {
-                    "name": "list_destinations",
+                    "name": ToolsSchema.LIST_DESTINATIONS,
                     "description": "List available destinations in the internal database. Call only if the user asks what destinations are available.",
                     "parameters": {"type": "object", "properties": {}},
                 },
@@ -53,7 +55,7 @@ class TravelAssistant:
             {
                 "type": "function",
                 "function": {
-                    "name": "get_destination_info",
+                    "name": ToolsSchema.GET_DESTINATION_INFO,
                     "description": "Get destination information from the internal database (country, keywords, best_season). Call when the user asks about a destination.",
                     "parameters": {
                         "type": "object",
@@ -65,7 +67,7 @@ class TravelAssistant:
             {
                 "type": "function",
                 "function": {
-                    "name": "search_destinations_by_keyword",
+                    "name": ToolsSchema.SEARCH_DESTINATIONS_BY_KEYWORD,
                     "description": "Search destinations by a keyword like 'beaches' or 'museums'. Call when user asks for destinations matching a theme.",
                     "parameters": {
                         "type": "object",
@@ -77,7 +79,7 @@ class TravelAssistant:
             {
                 "type": "function",
                 "function": {
-                    "name": "recommend_destinations_by_season",
+                    "name": ToolsSchema.RECOMMEND_DESTINATIONS_BY_SEASON,
                     "description": "Recommend destinations by season query (e.g., 'April', 'November', 'March–May'). Call when user asks where to go in a specific period.",
                     "parameters": {
                         "type": "object",
@@ -89,7 +91,7 @@ class TravelAssistant:
             {
                 "type": "function",
                 "function": {
-                    "name": "get_live_weather",
+                    "name": ToolsSchema.GET_LIVE_WEATHER,
                     "description": "Get current live weather for a destination. Call when user asks about current weather or temperature.",
                     "parameters": {
                         "type": "object",
@@ -100,7 +102,7 @@ class TravelAssistant:
             },
         ]
 
-        # Add MCP Server Tools dynamically
+        # Dynamically add MCP server tools
         for mcp_tool in self.flight_client.list_tools():
             self.tools.append(
                 {
@@ -119,6 +121,8 @@ class TravelAssistant:
             ], **args: self.flight_client._call_tool(_tool, args)
 
     def _handle_tool_call(self, tool_calls):
+        """Execute the requested tool and return the formatted tool response."""
+
         tool_call = tool_calls[0]
         name = tool_call.function.name
         args = json.loads(tool_call.function.arguments)
@@ -144,6 +148,8 @@ class TravelAssistant:
         }, fig
 
     def chat(self, message, history) -> str:
+        """Run a chat interaction with the LLM and handle tool calls if needed."""
+
         logger.info(f"User message: {message}")
         fig = None
 
@@ -159,7 +165,7 @@ class TravelAssistant:
         response = self.llm.generate(messages=msgs, tools=self.tools)
         logger.info(f"Assistant response: {response.content}")
 
-        # Handle tool calls
+        # Handle tool calls iteratively until the model stops requesting tools
         while response.finish_reason == "tool_calls":
             logger.info("Handling tool calls...")
             assistant_message = response.message
