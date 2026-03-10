@@ -72,6 +72,10 @@ A local **MCP server** is implemented to expose a flight search tool using the [
 
 ---
 
+
+https://github.com/user-attachments/assets/66d762bf-74aa-482e-8395-1b3ae05180b4
+
+
 # Possible Enhancements
 
 This project is intended as a **base architecture** for a more advanced travel assistant. Several extensions can be implemented:
