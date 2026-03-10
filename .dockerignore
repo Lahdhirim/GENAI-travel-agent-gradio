@@ -1,6 +1,5 @@
 .vscode
 archive
-assets
 logs
 notebooks
 __pycache__/

@@ -1,6 +1,7 @@
 import requests
 import json
 from typing import Tuple
+import os
 
 from src.utils.logger_config import logger
 from src.utils.schema import ToolsSchema
@@ -9,8 +10,9 @@ from src.utils.schema import ToolsSchema
 class MCPFlightClient:
     """Client responsible for communicating with the MCP flight server."""
 
-    def __init__(self, base_url="http://localhost:8001"):
-        self.session_url = f"{base_url}/mcp"
+    def __init__(self):
+        self.base_url = os.getenv("MCP_SERVER_URL", "http://localhost:8001")
+        self.session_url = f"{self.base_url}/mcp"
         self.session = requests.Session()
         self.session_id = self._initialize()
         self._send_initialized_notification()
