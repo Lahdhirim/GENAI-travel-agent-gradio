@@ -60,6 +60,7 @@ elif backend == "openrouter":
         api_key=api_key,
         model_name=config.openrouter_config.model_name,
         base_url=config.openrouter_config.base_url,
+        temperature=config.openrouter_config.temperature,
     )
 
 else:

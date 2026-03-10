@@ -6,14 +6,16 @@ from typing import Literal, Optional
 class OpenAIConfig(BaseModel):
     model_name: str = Field(..., description="OpenAI model name")
     temperature: Optional[float] = Field(
-        default=0.0, description="Temperature for OpenAI responses"
+        default=0.0, description="Temperature for OpenAI model responses"
     )
 
 
 class OpenRouterConfig(BaseModel):
-    # [LOW]: add hyperparams (e.g. temperature)
     base_url: str = Field(..., description="Base URL for Openrouter endpoint")
     model_name: str = Field(..., description="OpenRouter model name")
+    temperature: Optional[float] = Field(
+        default=0.0, description="Temperature for Openrouter model responses"
+    )
 
 
 class Config(BaseModel):
