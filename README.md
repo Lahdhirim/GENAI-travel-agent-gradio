@@ -86,3 +86,62 @@ This project is intended as a **base architecture** for a more advanced travel a
 - Add new travel-related tools such as hotel search, tourist attraction discovery, visa requirements, currency conversion, or public transportation data.
 - Dynamically enable or disable tools through a configuration file.
 - Add additional LLM providers as long as they support **tool-calling / function-calling** methods.
+
+# Installation
+
+Choose one of the following options:
+
+## Option 1 — Python environment
+1. Clone the repository:
+
+    ```bash
+    git clone https://github.com/Lahdhirim/GENAI-travel-agent-gradio.git
+    cd GENAI-travel-agent-gradio
+    ```
+2. Create a virtual environment and install dependencies:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
+3. Create a .env file in the project root:
+    ```env
+    OPENAI_API_KEY=your_openai_key
+    # or if using OpenRouter
+    OPENROUTER_API_KEY=your_openrouter_key
+    # AviationStack API key
+    AVIATIONSTACK_API_KEY=your_aviationstack_key
+    ```
+4. Start the MCP flight server:
+    ```bash
+    python src/services/mcp_flight_server.py
+    ```
+5. Start the Gradio application:
+    ```bash
+    python app.py
+    ```
+6. Open the interface in your browser: `http://localhost:7860`
+
+## Option 2 — Docker
+1. Clone the repository:
+
+    ```bash
+    git clone https://github.com/Lahdhirim/GENAI-travel-agent-gradio.git
+    cd GENAI-travel-agent-gradio
+    ```
+
+2. Create a .env file in the project root:
+    ```env
+    OPENAI_API_KEY=your_openai_key
+    # or if using OpenRouter
+    OPENROUTER_API_KEY=your_openrouter_key
+    # AviationStack API key
+    AVIATIONSTACK_API_KEY=your_aviationstack_key
+    ```
+
+3. Build and start the services:
+    ```bash
+    docker compose up --build
+    ```
+
+4. Open the interface in your browser: `http://localhost:7860`
