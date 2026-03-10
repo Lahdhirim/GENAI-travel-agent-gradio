@@ -1,0 +1,14 @@
+.vscode
+archive
+assets
+logs
+notebooks
+__pycache__/
+*.pyc
+.cache.sqlite
+.env
+.env.example
+.gitignore
+.pre-commit-config.yaml
+LICENSE
+README.md
