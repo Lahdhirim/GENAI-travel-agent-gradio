@@ -10,6 +10,8 @@ class OpenAILLM(BaseLLM):
         self.temperature = temperature
 
     def generate(self, messages: list, tools: None) -> LLMResult:
+        """Send messages the LLM and return the model response."""
+
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,

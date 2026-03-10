@@ -1,22 +1,40 @@
 import logging
 import os
 
-# Create the logger
-logger = logging.getLogger("main_logger")
-logger.setLevel(logging.DEBUG)
 
-if not logger.handlers:
+def create_logger(name: str, log_file: str, propagate: bool = True) -> logging.Logger:
+    """Create and configure a logger writing to a specific file."""
 
-    # Create a file handler to log to a file
-    os.makedirs("logs", exist_ok=True)
-    file_handler = logging.FileHandler("logs/app.log")
-    file_handler.setLevel(logging.DEBUG)
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
 
-    # Define log format
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    file_handler.setFormatter(formatter)
+    if not logger.handlers:
 
-    # Add file handler to logger
-    logger.addHandler(file_handler)
+        # Ensure log directory exists
+        os.makedirs("logs", exist_ok=True)
+
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(logging.DEBUG)
+
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+
+        file_handler.setFormatter(formatter)
+
+        logger.addHandler(file_handler)
+
+        logger.propagate = propagate
+
+    return logger
+
+
+# Main application logger
+logger = create_logger("main_logger", "logs/app.log")
+
+# MCP flight server logger
+mcp_logger = create_logger(
+    "mcp_flight_server",
+    "logs/mcp_server.log",
+    propagate=False,
+)

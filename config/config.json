@@ -7,7 +7,8 @@
   },
   "openrouter_config": {
     "base_url": "https://openrouter.ai/api/v1/chat/completions",
-    "model_name": "meta-llama/llama-3.3-70b-instruct"
+    "model_name": "meta-llama/llama-3.3-70b-instruct",
+    "temperature": 0.0
   },
   "system_prompt": "You are MomoBot, a travel assistant for a company called PyTravel. Be accurate, if you don't know the answer, say so. Only call tools when the user explicitly asks for information that requires a tool."
 }

@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+
+  mcp_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: mcp_flight_server
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./.env:/app/.env
+
+  travel_assistant:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: travel_assistant_app
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./.env:/app/.env
+    depends_on:
+      - mcp_server
+    environment:
+      - MCP_SERVER_URL=http://mcp_server:8001

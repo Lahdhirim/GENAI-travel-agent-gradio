@@ -60,6 +60,7 @@ elif backend == "openrouter":
         api_key=api_key,
         model_name=config.openrouter_config.model_name,
         base_url=config.openrouter_config.base_url,
+        temperature=config.openrouter_config.temperature,
     )
 
 else:
@@ -111,4 +112,5 @@ with gr.Blocks() as demo:
         outputs=[history, plot_output, message, current_b64_state],
     )
 
-demo.launch(inbrowser=True)
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860, show_error=True)

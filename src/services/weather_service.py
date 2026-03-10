@@ -9,24 +9,30 @@ import matplotlib.dates as mdates
 import io
 from PIL import Image
 import numpy as np
+from typing import Tuple, Dict, Any
 
 from src.utils.logger_config import logger
+from src.utils.schema import WeatherSchema
 
 
 class WeatherService:
+    """Service responsible for geocoding locations and retrieving weather data."""
+
     def __init__(self):
         # Geocoder
         self.geolocator = Nominatim(user_agent="travel_assistant")
         self.geocode = RateLimiter(self.geolocator.geocode, min_delay_seconds=1)
 
-        # Open-Meteo
+        # Open-Meteo client with caching and retries
         cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
         retry_session = retry(cache_session, retries=3, backoff_factor=0.2)
         self.client = openmeteo_requests.Client(session=retry_session)
 
         self.url = "https://api.open-meteo.com/v1/forecast"
 
-    def _get_coordinates(self, destination: str, country: str):
+    def _get_coordinates(self, destination: str, country: str) -> Tuple[float, float]:
+        """Resolve latitude and longitude for a destination."""
+
         query = f"{destination}, {country}"
         location = self.geocode(query, language="en")
 
@@ -38,9 +44,11 @@ class WeatherService:
         return location.latitude, location.longitude
 
     def _call_api(self, lat: float, lon: float, params: dict):
+        """Call the Open-Meteo API with provided parameters."""
+
         base_params = {
-            "latitude": lat,
-            "longitude": lon,
+            WeatherSchema.LATITUDE: lat,
+            WeatherSchema.LONGITUDE: lon,
         }
 
         full_params = {**base_params, **params}
@@ -53,10 +61,12 @@ class WeatherService:
             logger.error(f"Error fetching weather data: {e}")
             return None
 
-    def _format_weather_keys(self, weather_dict: dict) -> dict:
+    def _format_weather_keys(self, weather_dict: dict) -> Dict[str, Any]:
+        """Format output keys with readable units."""
+
         key_mapping = {
-            "temperature": "temperature (°C)",
-            "wind_speed": "wind_speed (km/h)",
+            WeatherSchema.TEMPERATURE: WeatherSchema.TEMPERATURE_C,
+            WeatherSchema.WIND_SPEED: WeatherSchema.WIND_SPEED_KM_H,
         }
 
         formatted = {}
@@ -67,7 +77,8 @@ class WeatherService:
 
         return formatted
 
-    def get_weather(self, destination: str, country: str):
+    def get_weather(self, destination: str, country: str) -> Dict[str, Any]:
+        """Retrieve current weather conditions for a destination."""
 
         lat, lon = self._get_coordinates(destination, country)
         if lat is None or lon is None:
@@ -83,12 +94,12 @@ class WeatherService:
 
         current = response.Current()
         result = {
-            "destination": destination,
-            "country": country,
-            "latitude": lat,
-            "longitude": lon,
-            "temperature": current.Variables(0).Value(),
-            "wind_speed": current.Variables(1).Value(),
+            WeatherSchema.DESTINATION: destination,
+            WeatherSchema.COUNTRY: country,
+            WeatherSchema.LATITUDE: lat,
+            WeatherSchema.LONGITUDE: lon,
+            WeatherSchema.TEMPERATURE: current.Variables(0).Value(),
+            WeatherSchema.WIND_SPEED: current.Variables(1).Value(),
         }
 
         result_formattted = self._format_weather_keys(result)
@@ -97,6 +108,7 @@ class WeatherService:
         return result_formattted
 
     def plot_forecast(self, destination: str, country: str):
+        """Generate a past + forecast weather plot and return it as an image array."""
 
         lat, lon = self._get_coordinates(destination, country)
         if lat is None or lon is None:
@@ -135,10 +147,10 @@ class WeatherService:
 
         df = pd.DataFrame(
             {
-                "date": dates,
-                "temperature": temperature,
-                "wind_speed": wind_speed,
-                "precipitation_probability": precipitation_prob,
+                WeatherSchema.DATE: dates,
+                WeatherSchema.TEMPERATURE: temperature,
+                WeatherSchema.WIND_SPEED: wind_speed,
+                WeatherSchema.PRECIPITATION_PROB: precipitation_prob,
             }
         )
 
@@ -148,18 +160,21 @@ class WeatherService:
 
         # Create Figures
         now = pd.Timestamp.utcnow()
-        past_df = df[df["date"] <= now]  # Past Data
-        future_df = df[df["date"] > now]  # Forecast Data
+        past_df = df[df[WeatherSchema.DATE] <= now]  # Past Data
+        future_df = df[df[WeatherSchema.DATE] > now]  # Forecast Data
 
         fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
 
         # Temperature
         axes[0].plot(
-            past_df["date"], past_df["temperature"], label="Past", linestyle="-"
+            past_df[WeatherSchema.DATE],
+            past_df[WeatherSchema.TEMPERATURE],
+            label="Past",
+            linestyle="-",
         )
         axes[0].plot(
-            future_df["date"],
-            future_df["temperature"],
+            future_df[WeatherSchema.DATE],
+            future_df[WeatherSchema.TEMPERATURE],
             label="Forecast",
             linestyle="--",
         )
@@ -170,8 +185,16 @@ class WeatherService:
         axes[0].grid(True)
 
         # Wind
-        axes[1].plot(past_df["date"], past_df["wind_speed"], linestyle="-")
-        axes[1].plot(future_df["date"], future_df["wind_speed"], linestyle="--")
+        axes[1].plot(
+            past_df[WeatherSchema.DATE],
+            past_df[WeatherSchema.WIND_SPEED],
+            linestyle="-",
+        )
+        axes[1].plot(
+            future_df[WeatherSchema.DATE],
+            future_df[WeatherSchema.WIND_SPEED],
+            linestyle="--",
+        )
         axes[1].axvline(now, linestyle=":", linewidth=2, color="red")
         axes[1].set_title("Wind Speed")
         axes[1].set_ylabel("km/h")
@@ -179,10 +202,14 @@ class WeatherService:
 
         # Precipitation Probability
         axes[2].plot(
-            past_df["date"], past_df["precipitation_probability"], linestyle="-"
+            past_df[WeatherSchema.DATE],
+            past_df[WeatherSchema.PRECIPITATION_PROB],
+            linestyle="-",
         )
         axes[2].plot(
-            future_df["date"], future_df["precipitation_probability"], linestyle="--"
+            future_df[WeatherSchema.DATE],
+            future_df[WeatherSchema.PRECIPITATION_PROB],
+            linestyle="--",
         )
         axes[2].axvline(now, linestyle=":", linewidth=2, color="red")
         axes[2].set_title("Precipitation Probability")
